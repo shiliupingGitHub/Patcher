@@ -2,6 +2,8 @@
 using System.Collections;
 using UnityEditor;
 using System.IO;
+using System.IO.Compression;
+
 public class PatcherEditor : Editor {
 
 	[MenuItem("Patcher/PC/BuildAsset")]
@@ -9,6 +11,7 @@ public class PatcherEditor : Editor {
     {
         BuildAsset(BuildTarget.StandaloneWindows);
     }
+
     [MenuItem("Patcher/Android/BuildAsset")]
     static void BuildAndroidAsset()
     {
@@ -19,7 +22,48 @@ public class PatcherEditor : Editor {
     {
         BuildAsset(BuildTarget.StandaloneWindows);
     }
-    static void BuildAsset(BuildTarget target)
+    [MenuItem("Patcher/PC/Zip")]
+    static void BuildPCZip()
+    {
+        BuildZip(BuildTarget.StandaloneWindows);
+    }
+    [MenuItem("Patcher/Android/Zip")]
+    static void BuildAndroidZip()
+    {
+        BuildZip(BuildTarget.Android);
+    }
+
+    [MenuItem("Patcher/IOS/Zip")]
+    static void BuildIOSZip()
+    {
+        BuildZip(BuildTarget.iOS);
+    }
+    static void BuildZip(BuildTarget target)
+    {
+        string outPath = Application.dataPath + "/StreamingAssets/game.zip";
+        if (File.Exists(outPath))
+            File.Delete(outPath);
+        ZipStorer zip = ZipStorer.Create(outPath, target.ToString());
+        string path = GetPath(target);
+        string di = "Assets/Patcher/ABs/" + path;
+        string[] fs = Directory.GetFiles(di);
+        foreach(var f in fs)
+        {
+            
+            if (f.EndsWith(".meta")
+                || f.EndsWith(".manifest")
+                )
+                continue;
+            string szName = Path.GetFileNameWithoutExtension(f);
+            if (path == szName)
+                continue;
+            zip.AddFile(ZipStorer.Compression.Store, f, szName, szName);
+
+        }
+        zip.Close();
+        AssetDatabase.Refresh();
+    }
+    static string GetPath(BuildTarget target)
     {
         string Path = string.Empty;
         switch (target)
@@ -34,6 +78,11 @@ public class PatcherEditor : Editor {
                 Path = Patcher.GetABsPath(RuntimePlatform.WindowsPlayer);
                 break;
         }
+        return Path;
+    }
+    static void BuildAsset(BuildTarget target)
+    {
+        string Path = GetPath(target);
         string outPath = "Assets/Patcher/ABs/" + Path;
         if (!Directory.Exists(outPath))
             Directory.CreateDirectory(outPath);

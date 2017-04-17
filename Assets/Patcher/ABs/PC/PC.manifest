@@ -1,0 +1,10 @@
+ManifestFileVersion: 0
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: gaga
+      Dependencies:
+        Dependency_0: haha
+    Info_1:
+      Name: haha
+      Dependencies: {}
