@@ -4,6 +4,7 @@ using System.IO;
 using LiteJSON;
 using System;
 using System.IO.Compression;
+using System.Collections;
 public class Patcher  {
     #region Elems
     public class PatcherElem : IJsonSerializable, IJsonDeserializable
@@ -12,13 +13,24 @@ public class Patcher  {
         {
             public string szName;
             public string mVersion;
+            public int mLength;
+            public WWW mDonload;
             public string[] mDepends;
+            public string ResPath
+            {
+                get
+                {
+                    return Application.persistentDataPath + "/" + szName;
+                }
+            }
+
             public   JsonObject ToJson()
             {
                 JsonObject obj = new JsonObject();
                 obj.Put("name", szName);
                 obj.Put("version", mVersion);
                 obj.Put("depends", mDepends);
+                obj.Put("len", mLength);
                 return obj;
             }
 
@@ -27,13 +39,20 @@ public class Patcher  {
                 szName = jsonObject.GetString("name");
                 mVersion = jsonObject.GetString("version");
                 mDepends = jsonObject.GetJsonArray("depends").ToArrayString();
+                mLength = jsonObject.GetInt("len");
             }
         }
-        List<Elem> mElems = new List<Elem>();
+       public List<Elem> mElems = new List<Elem>();
         public Dictionary<string, Elem> mDic = new Dictionary<string, Elem>();
         public void AddElem(Elem e)
         {
             mElems.Add(e);
+            mDic[e.szName] = e;
+        }
+        public void RemoveElem(Elem e)
+        {
+            mElems.Remove(e);
+            mDic.Remove(e.szName);
         }
         public void Serialize(string outPath)
         {
@@ -48,32 +67,35 @@ public class Patcher  {
                 mDic[e.szName] = e;
             }
         }
+      public  bool IsChange(PatcherElem.Elem elem)
+        {
+            Elem me = null;
+            mDic.TryGetValue(elem.szName, out me);
+            if (me == null)
+            {
+                return true;
+            }
+            else if (me.mVersion != elem.mVersion)
+            {
+                return true;
+            }
+            else
+            {
+                string path = Application.persistentDataPath + "/" + elem.szName;
+                if (!File.Exists(path))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         List<PatcherElem.Elem> Compare(PatcherElem elem)
         {
             List<PatcherElem.Elem> ret = new List<Elem>();
             foreach(var d in elem.mDic)
             {
-                Elem me = null;
-                mDic.TryGetValue(d.Key, out me);
-                if(me == null)
-                {
+                if (IsChange(d.Value))
                     ret.Add(d.Value);
-                    continue;
-                }
-                else if(me.mVersion != d.Value.mVersion)
-                {
-                    ret.Add(d.Value);
-                    continue;
-                }
-                else
-                {
-                    string path = Application.persistentDataPath + "/" + d.Key;
-                    if(!File.Exists(path))
-                    {
-                        ret.Add(d.Value);
-                        continue;
-                    }
-                }
             }
             return ret;
         }
@@ -110,12 +132,9 @@ public class Patcher  {
     }
     static int mVersion = 0;
     public static PatcherElem mCurElems = null;
-    public  static void InitVersion(int v)
+    public static void UnPackFiles(int p)
     {
-        mVersion = v;
-    }
-    public static void UnPackFiles()
-    {
+        mVersion = p;
        int v =  PlayerPrefs.GetInt("UnPackVersion", 0);
         if(mVersion > v)
         {
@@ -139,4 +158,8 @@ public class Patcher  {
 
         }
     }
+
 }
+
+
+

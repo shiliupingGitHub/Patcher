@@ -107,6 +107,9 @@ public class PatcherEditor : Editor {
                 e.szName = ab;
                 e.mVersion = manifest.GetAssetBundleHash(ab).ToString();
                 e.mDepends = manifest.GetAllDependencies(ab);
+                string filePath = outPath + "/" + ab;
+                byte[] bs = File.ReadAllBytes(filePath);
+                e.mLength = bs.Length;
                 elem.AddElem(e);
             }
             string manifestPath = Application.dataPath + "/Patcher/ABs/" + Path;
