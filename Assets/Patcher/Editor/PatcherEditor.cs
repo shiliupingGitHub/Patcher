@@ -38,9 +38,17 @@ public class PatcherEditor : Editor {
     {
         BuildZip(BuildTarget.iOS);
     }
+
+    [MenuItem("Patcher/DeletePersist")]
+    static void DeletePersist()
+    {
+        if (Directory.Exists(Application.persistentDataPath))
+            Directory.Delete(Application.persistentDataPath,true);
+        PlayerPrefs.DeleteAll();
+    }
     static void BuildZip(BuildTarget target)
     {
-        string outPath = Application.dataPath + "/StreamingAssets/game.zip";
+        string outPath = Application.dataPath + "/Patcher/Resources/game.bytes";
         if (File.Exists(outPath))
             File.Delete(outPath);
         ZipStorer zip = ZipStorer.Create(outPath, target.ToString());
@@ -63,6 +71,7 @@ public class PatcherEditor : Editor {
         zip.Close();
         AssetDatabase.Refresh();
     }
+
     static string GetPath(BuildTarget target)
     {
         string Path = string.Empty;
