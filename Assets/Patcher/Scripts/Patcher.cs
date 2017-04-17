@@ -109,6 +109,7 @@ public class Patcher  {
         }
     }
     static int mVersion = 0;
+    public static PatcherElem mCurElems = null;
     public  static void InitVersion(int v)
     {
         mVersion = v;
