@@ -130,9 +130,40 @@ public class Patcher  {
                 return "PC";
         }
     }
-    static int mVersion = 0;
-    public static PatcherElem mCurElems = null;
-    public static void UnPackFiles(int p)
+     Dictionary<string, AssetBundle> mAssets = new Dictionary<string, AssetBundle>();
+     Dictionary<string, UnityEngine.Object> mObs = new Dictionary<string, UnityEngine.Object>();
+    public UnityEngine.Object GetAsset(string path)
+    {
+        UnityEngine.Object ret = null;
+        if (mObs.TryGetValue(path, out ret))
+            return ret;
+        if (null != mCurElems)
+        {
+            PatcherElem.Elem elem = null;
+           if( mCurElems.mDic.TryGetValue(path,out elem ))
+            {
+                if(elem.mDepends != null && elem.mDepends.Length > 0)
+                {
+                    foreach(var d in elem.mDepends)
+                    {
+                        GetAsset(d);
+                    }
+                }
+
+                AssetBundle ab = AssetBundle.LoadFromFile(Application.persistentDataPath + "/" + path);
+                if(null != ab)
+                {
+                   ret = ab.LoadAsset(path);
+                    mObs[path] = ret;
+                    mAssets[path] = ab;
+                }
+            }
+        }
+        return ret;
+    }
+    int mVersion = 0;
+    public  PatcherElem mCurElems = null;
+    public  void UnPackFiles(int p)
     {
         mVersion = p;
        int v =  PlayerPrefs.GetInt("UnPackVersion", 0);

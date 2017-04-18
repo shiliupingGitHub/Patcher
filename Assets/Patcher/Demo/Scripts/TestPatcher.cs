@@ -5,7 +5,8 @@ public class TestPatcher : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        Patcher.UnPackFiles(1);
+        Patcher p = new Patcher();
+        p.UnPackFiles(1);
         PatcherDownloader.BeginDownload("http://");
 
 

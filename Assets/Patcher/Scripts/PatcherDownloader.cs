@@ -13,7 +13,7 @@ public class PatcherDownloader : MonoBehaviour
     Patcher.PatcherElem mDownloads;
     Patcher.PatcherElem mDownloadeds;
     System.Action<string> mOnError;
-    System.Action mOnFinish;
+    System.Action<Patcher.PatcherElem> mOnFinish;
     public string mPath;
     public int mTotal = 0;
     public int mLeft = 0;
@@ -26,9 +26,8 @@ public class PatcherDownloader : MonoBehaviour
             return;
         if (mDownloads.mElems.Count == 0)
         {
-            Patcher.mCurElems = mDownloadeds;
             if (null != mOnFinish)
-                mOnFinish();
+                mOnFinish(mDownloadeds);
             GameObject.DestroyObject(gameObject);
         }
         mLeft = 0;
