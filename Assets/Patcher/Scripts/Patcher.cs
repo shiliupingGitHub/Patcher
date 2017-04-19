@@ -6,6 +6,7 @@ using System;
 using System.IO.Compression;
 using System.Collections;
 public class Patcher  {
+    PatcherDownloader mDownloader;
     #region Elems
     public class PatcherElem : IJsonSerializable, IJsonDeserializable
     {
@@ -163,7 +164,7 @@ public class Patcher  {
     }
     int mVersion = 0;
     public  PatcherElem mCurElems = null;
-    public  void UnPackFiles(int p)
+    public  void Begin(int p,string url)
     {
         mVersion = p;
        int v =  PlayerPrefs.GetInt("UnPackVersion", 0);
@@ -184,9 +185,14 @@ public class Patcher  {
                 zip.Close();
             }
             PlayerPrefs.SetInt("UnPackVersion", mVersion);
-
-
-
+            GameObject dGo = new GameObject("Downloader");
+            mDownloader = dGo.AddComponent<PatcherDownloader>();
+            mDownloader.BeginDownload(url, delegate(PatcherElem e)
+            {
+                mCurElems = e;
+                GameObject.Destroy(dGo);
+                mDownloader = null;
+            });
         }
     }
 

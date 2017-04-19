@@ -7,6 +7,7 @@ public class PatcherDownloader : MonoBehaviour
     public enum STATUS
     {
         NONE,
+        DOWNLOADING,
         ERROR,
     }
 
@@ -22,13 +23,12 @@ public class PatcherDownloader : MonoBehaviour
     {
         if (mDownloads == null)
             return;
-        if (mStatus == STATUS.ERROR)
+        if (mStatus != STATUS.DOWNLOADING)
             return;
         if (mDownloads.mElems.Count == 0)
         {
             if (null != mOnFinish)
                 mOnFinish(mDownloadeds);
-            GameObject.DestroyObject(gameObject);
         }
         mLeft = 0;
         List<Patcher.PatcherElem.Elem> rm = new List<Patcher.PatcherElem.Elem>();
@@ -67,12 +67,11 @@ public class PatcherDownloader : MonoBehaviour
             mDownloadeds.Serialize(localPath);
         }
     }
-   public static void BeginDownload(string remotePath)
+   public  void BeginDownload(string remotePath, System.Action<Patcher.PatcherElem> onFinish)
     {
-        GameObject clone = new GameObject("Downloader");
-        PatcherDownloader downloader = clone.AddComponent<PatcherDownloader>();
-        downloader.mPath = remotePath;
-        downloader.StartCoroutine(downloader.Donload());
+        mOnFinish = onFinish;
+        mPath = remotePath;
+       StartCoroutine(Donload());
     }
     public IEnumerator Donload()
     {
@@ -107,6 +106,7 @@ public class PatcherDownloader : MonoBehaviour
             {
                 mDownloads.RemoveElem(r);
             }
+            mStatus = STATUS.DOWNLOADING;
         }
         else if (null != mOnError)
         {
